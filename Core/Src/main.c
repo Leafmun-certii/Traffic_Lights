@@ -101,6 +101,22 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */   
+    //flash green 
+    HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin);
+    HAL_Delay(500);
+    HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin);
+    
+
+    //flash amber 
+    HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin);
+    HAL_Delay(500);
+    HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin);
+
+    
+    //flash red 
+    HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
+    HAL_Delay(500);
+    HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
