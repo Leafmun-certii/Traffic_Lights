@@ -350,6 +350,16 @@ void All_lights_off(void){
   HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_RESET);
 }
+
+// Blue button External Interrupt ISR Handler CallBackFun
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+  if(GPIO_Pin = B1_Pin){  
+    if(HAL_GPIO_ReadPin(B1_GPIO_Port,B1_Pin) == GPIO_PIN_SET ){
+      Next_state();
+    } 
+  }
+}
+
 /* USER CODE END 4 */
 
 /**
