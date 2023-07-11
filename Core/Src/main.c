@@ -34,8 +34,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 // T1 pre scale + counter
-#define T1_PRE 7199
-#define T1_CNT 1500
+
 
 // Define states
 #define GO 0
@@ -120,7 +119,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    Next_state();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -240,7 +239,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = T1_PRE;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 4999;
+  htim1.Init.Period = 2000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
