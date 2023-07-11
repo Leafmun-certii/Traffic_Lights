@@ -37,6 +37,11 @@
 #define READY_STOP 1
 #define STOP 2
 #define READY_GO 3
+
+//Time in ms between each state
+#define STATE_TRANSITION_DELAY 1500
+//Green light state takes SHORTEN_FACTOR+1 times less time when pb pressed
+#define SHORTEN_FACTOR 3
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,6 +67,7 @@ static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 void Next_state(void);
 void All_traffic_lights_off(void);
+void GO_State_Delay(uint32_t Delay, int Shorten_Factor);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -108,6 +114,8 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */  
+    HAL_Delay(500);
+    Next_state();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -321,11 +329,13 @@ void Next_state(void)
       state = GO;
       All_traffic_lights_off();
       HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_SET);
+      GO_State_Delay(STATE_TRANSITION_DELAY,SHORTEN_FACTOR);
       break;
     case(GO):
       state = READY_STOP;
       All_traffic_lights_off();
       HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
+      HAL_Delay(STATE_TRANSITION_DELAY);
       break;
     case(READY_STOP):
       state = STOP;
@@ -333,12 +343,14 @@ void Next_state(void)
       All_traffic_lights_off();
       HAL_GPIO_WritePin(LD2_GPIO_Port,LD2_Pin,GPIO_PIN_RESET);
       HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
+      HAL_Delay(STATE_TRANSITION_DELAY);
       break;
     case(STOP):
       state = READY_GO;
       All_traffic_lights_off();
       HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
       HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
+      HAL_Delay(STATE_TRANSITION_DELAY);
       break;
   }
 }
@@ -352,6 +364,26 @@ void All_traffic_lights_off(void){
   HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_RESET);
+}
+
+/**
+  * @brief  This function waits Shorten_Factor+1 times less time if the push button is pressed
+  * @retval None
+  */
+void GO_State_Delay(uint32_t Delay, int Shorten_Factor)
+{
+  uint32_t tickstart = HAL_GetTick();
+  uint32_t wait = Delay;
+
+  /* Add a freq to guarantee minimum wait */
+  if (wait < HAL_MAX_DELAY)
+  {
+    wait += (uint32_t)(uwTickFreq);
+  }
+
+  while ((HAL_GetTick() - tickstart) < wait/(1+Shorten_Factor*pb_state))
+  {
+  }
 }
 
 // Blue button External Interrupt ISR Handler CallBackFun
