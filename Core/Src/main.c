@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include <stdbool.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,7 +50,8 @@ RTC_HandleTypeDef hrtc;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+ int state = GO;
+ bool pb_state = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,7 +61,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 void Next_state(void);
-void All_lights_off(void);
+void All_traffic_lights_off(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -105,7 +107,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */   
+    /* USER CODE END WHILE */  
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -314,26 +316,27 @@ static void MX_GPIO_Init(void)
   */
 void Next_state(void)
 {
-  static int state = GO;
   switch (state){
+    case(READY_GO):
+      state = GO;
+      All_traffic_lights_off();
+      HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_SET);
+      break;
     case(GO):
       state = READY_STOP;
-      All_lights_off();
-      HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_SET);
+      All_traffic_lights_off();
+      HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
       break;
     case(READY_STOP):
       state = STOP;
-      All_lights_off();
-      HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
+      pb_state = false;
+      All_traffic_lights_off();
+      HAL_GPIO_WritePin(LD2_GPIO_Port,LD2_Pin,GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
       break;
     case(STOP):
       state = READY_GO;
-      All_lights_off();
-      HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
-      break;
-    case(READY_GO):
-      state = GO;
-      All_lights_off();
+      All_traffic_lights_off();
       HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
       HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
       break;
@@ -342,10 +345,10 @@ void Next_state(void)
 
 
 /**
-  * @brief  This function turns off all lights
+  * @brief  This function turns off all coloured traffic lights
   * @retval None
   */
-void All_lights_off(void){
+void All_traffic_lights_off(void){
   HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_RESET);
@@ -353,9 +356,10 @@ void All_lights_off(void){
 
 // Blue button External Interrupt ISR Handler CallBackFun
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-  if(GPIO_Pin = B1_Pin){  
-    if(HAL_GPIO_ReadPin(B1_GPIO_Port,B1_Pin) == GPIO_PIN_SET ){
-      Next_state();
+  if(GPIO_Pin == B1_Pin){  
+    if((HAL_GPIO_ReadPin(B1_GPIO_Port,B1_Pin) == GPIO_PIN_SET) && (state != STOP)){
+      pb_state = true;
+      HAL_GPIO_WritePin(LD2_GPIO_Port,LD2_Pin,GPIO_PIN_SET);
     } 
   }
 }
