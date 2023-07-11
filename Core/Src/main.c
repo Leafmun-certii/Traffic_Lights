@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "main.h"
+#include <stdio.h>
 #include <stdbool.h>
 
 /* USER CODE END Includes */
@@ -34,7 +34,6 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 // T1 pre scale + counter
-
 
 // Define states
 #define GO 0
@@ -72,6 +71,18 @@ static void MX_TIM1_Init(void);
 void Next_state(void);
 void All_traffic_lights_off(void);
 void GO_State_Delay(uint32_t Delay, int Shorten_Factor);
+
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif
+
+PUTCHAR_PROTOTYPE
+{
+  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,16 +123,21 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // Fire up the pedestrian LED flash timer
   HAL_TIM_Base_Start_IT(&htim1);
+  MX_LPUART1_UART_Init();
+
+  /* USER CODE BEGIN 2 */
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
+  while (true)
   {
-    /* USER CODE END WHILE */
     Next_state();
-    /* USER CODE BEGIN 3 */
   }
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
 
@@ -327,18 +343,21 @@ void Next_state(void)
   {
   case (READY_GO):
     state = GO;
+    printf("State: GO\n");
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
     GO_State_Delay(STATE_TRANSITION_DELAY, SHORTEN_FACTOR);
     break;
   case (GO):
     state = READY_STOP;
+    printf("State: READY_STOP\n");
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
     HAL_Delay(STATE_TRANSITION_DELAY);
     break;
   case (READY_STOP):
     state = STOP;
+    printf("State: STOP\n");
     pb_state = false;
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_RESET);
@@ -347,6 +366,7 @@ void Next_state(void)
     break;
   case (STOP):
     state = READY_GO;
+    printf("State: READY_GO\n");
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
@@ -392,9 +412,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if (GPIO_Pin == B1_Pin)
   {
+    printf("pb interrupt received\n");
     if ((HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_SET) && (state != STOP))
     {
       pb_state = true;
+      printf("Pedestrian waiting\n");
       HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_SET);
     }
   }
@@ -403,7 +425,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 // Timer 1 callback for flashing pedestrian button
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim->Instance == TIM1  && state == STOP)
+  if (htim->Instance == TIM1 && state == STOP)
   {
     HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin);
   }
