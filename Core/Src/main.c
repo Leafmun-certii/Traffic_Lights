@@ -55,6 +55,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 
+void All_lights_off(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -304,6 +305,15 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+  * @brief  This function turns off all lights
+  * @retval None
+  */
+void All_lights_off(void){
+  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_RESET);
+}
 /* USER CODE END 4 */
 
 /**
