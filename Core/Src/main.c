@@ -31,7 +31,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//Define states
+#define GO 0
+#define READY_STOP 1
+#define STOP 2
+#define READY_GO 3
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,7 +58,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
-
+void Next_state(void);
 void All_lights_off(void);
 /* USER CODE END PFP */
 
@@ -304,6 +308,38 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief  This function changes the traffic lights to the next state.
+  * @retval None
+  */
+void Next_state(void)
+{
+  static int state = GO;
+  switch (state){
+    case(GO):
+      state = READY_STOP;
+      All_lights_off();
+      HAL_GPIO_WritePin(LED_GREEN_GPIO_Port,LED_GREEN_Pin,GPIO_PIN_SET);
+      break;
+    case(READY_STOP):
+      state = STOP;
+      All_lights_off();
+      HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
+      break;
+    case(STOP):
+      state = READY_GO;
+      All_lights_off();
+      HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
+      break;
+    case(READY_GO):
+      state = GO;
+      All_lights_off();
+      HAL_GPIO_WritePin(LED_AMBER_GPIO_Port,LED_AMBER_Pin,GPIO_PIN_SET);
+      HAL_GPIO_WritePin(LED_RED_GPIO_Port,LED_RED_Pin,GPIO_PIN_SET);
+      break;
+  }
+}
+
 
 /**
   * @brief  This function turns off all lights
