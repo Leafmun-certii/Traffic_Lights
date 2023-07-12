@@ -53,12 +53,13 @@ TIM_HandleTypeDef htim1;
 /* USER CODE BEGIN PV */
 bool pb_pushed = false;
 
-enum Traffic_light_state {
- GO,
- READY_STOP,
- STOP,
- READY_GO,
- FLASHING
+enum Traffic_light_state
+{
+  GO,
+  READY_STOP,
+  STOP,
+  READY_GO,
+  FLASHING
 };
 
 enum Traffic_light_state state = READY_STOP;
@@ -73,6 +74,7 @@ static void MX_TIM1_Init(void);
 void Next_state(void);
 void All_traffic_lights_off(void);
 void GO_State_Delay(uint32_t Delay, int Shorten_Factor);
+void Update_lights(void);
 
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
@@ -333,7 +335,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 /**
- * @brief  This function changes the traffic lights to the next state.
+ * @brief  This function changes the traffic lights state to the next state.
  * @retval None
  */
 void Next_state(void)
@@ -342,56 +344,71 @@ void Next_state(void)
   {
   case (READY_GO):
     state = GO;
+    break;
+  case (GO):
+    state = READY_STOP;
+    break;
+  case (READY_STOP):
+    state = STOP;
+    break;
+  case (STOP):
+    if (pb_pushed)
+    {
+      state = FLASHING;
+    }
+    else
+    {
+      state = READY_GO;
+    }
+    break;
+  case (FLASHING):
+    state = GO;
+    break;
+  }
+  Update_lights();
+}
+
+/**
+ * @brief  This function updates the traffic lights to the current state + waits.
+ * @retval None
+ */
+void Update_lights(void)
+{
+  switch (state)
+  {
+  case (GO):
     printf("State: GO\n");
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
     GO_State_Delay(STATE_TRANSITION_DELAY, SHORTEN_FACTOR);
     break;
-  case (GO):
-    state = READY_STOP;
+  case (READY_STOP):
     printf("State: READY_STOP\n");
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
     HAL_Delay(STATE_TRANSITION_DELAY);
     break;
-  case (READY_STOP):
-    state = STOP;
+  case (STOP):
     printf("State: STOP\n");
     All_traffic_lights_off();
     HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
     HAL_Delay(STATE_TRANSITION_DELAY);
     break;
-  case (STOP):
-    if (pb_pushed)
-    {
-      state = FLASHING;
-      pb_pushed = false;
-      printf("State: FLASHING\n");
-      All_traffic_lights_off();
-      HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
-      HAL_Delay(STATE_TRANSITION_DELAY);
-    }
-    else
-    {
-      state = READY_GO;
-      printf("State: READY_GO\n");
-      All_traffic_lights_off();
-      HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-      HAL_Delay(STATE_TRANSITION_DELAY);
-    }
-    break;
-
-    // TODO Rewrite this so state logic and transition logic different (function that runs lights based on passed state?) 
-  case (FLASHING):
-    state = GO;
-    printf("State: GO\n");
+  case (READY_GO):
+    printf("State: READY_GO\n");
     All_traffic_lights_off();
-    HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
-    GO_State_Delay(STATE_TRANSITION_DELAY, SHORTEN_FACTOR);
+    HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
+    HAL_Delay(STATE_TRANSITION_DELAY);
     break;
+  case (FLASHING):
+    pb_pushed = false;
+    printf("State: FLASHING\n");
+    All_traffic_lights_off();
+    HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
+    HAL_Delay(STATE_TRANSITION_DELAY);
   }
 }
 
@@ -449,10 +466,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     switch (state)
     {
     case (STOP):
-    HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin);
+      HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin);
       break;
     case (FLASHING):
-    HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin);
+      HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin);
       break;
     default:
       break;
