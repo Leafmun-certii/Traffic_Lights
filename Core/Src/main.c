@@ -33,14 +33,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-// T1 pre scale + counter
-
-// Define states
-#define GO 0
-#define READY_STOP 1
-#define STOP 2
-#define READY_GO 3
-#define FLASHING 4
 
 // Time in ms between each state
 #define STATE_TRANSITION_DELAY 2500
@@ -59,8 +51,17 @@ UART_HandleTypeDef hlpuart1;
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
-int state = READY_STOP;
 bool pb_pushed = false;
+
+enum Traffic_light_state {
+ GO,
+ READY_STOP,
+ STOP,
+ READY_GO,
+ FLASHING
+};
+
+enum Traffic_light_state state = READY_STOP;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
