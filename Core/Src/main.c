@@ -369,7 +369,7 @@ void Next_state(void)
 }
 
 /**
- * @brief  This function updates the traffic lights to the current state + waits.
+ * @brief  This function updates the traffic lights to the current state + delays.
  * @retval None
  */
 void Update_lights(void)
@@ -391,6 +391,7 @@ void Update_lights(void)
   case (STOP):
     printf("State: STOP\n");
     All_traffic_lights_off();
+    TIM1 -> CNT &= 0x0;    //reset timer so flash looks the same each time
     HAL_GPIO_WritePin(LED_BOARD_GPIO_Port, LED_BOARD_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
     HAL_Delay(STATE_TRANSITION_DELAY);
@@ -407,6 +408,7 @@ void Update_lights(void)
     pb_pushed = false;
     printf("State: FLASHING\n");
     All_traffic_lights_off();
+    TIM1 -> CNT &= 0x0;    //reset timer so flash looks the same each time
     HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, GPIO_PIN_SET);
     HAL_Delay(STATE_TRANSITION_DELAY);
   }
